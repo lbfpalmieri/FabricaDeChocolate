@@ -1,0 +1,197 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using FabricaDeChocolate.Data
+
+<MudPopoverProvider />
+
+<MudDialogProvider />
+<MudContainer Class="d-flex justify-center mb-2">
+    <MudFab 
+    Color="Color.Primary"
+    StartIcon="@Icons.Material.Filled.Add"
+    Site="Size.Large"
+    Label="Incluir Embalagem"
+    Class="ma-2" @onclick="(e => CreateAsync())"/>
+</MudContainer>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" lg="10" xl="8">
+        <MudPaper Elevation="5" Class="pa-4" Style="border-radius: 40px;">
+            <MudTable Items="@embalagens"
+            Dense="@dense"
+            Hover="@hover"
+            Bordered="@bordered"
+            Striped="@striped"
+            RowClassFunc="@((emb, index) => HighlightLowStock(emb))"
+            Filter="new Func<Embalagem,bool>(FilterFunc1)"
+            @bind-SelectedItem="selectedItem1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Chumbos Disponiveis</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="searchString1"
+                    Immediate="true"
+                    Placeholder="Search"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+                    </MudTextField>
+                </ToolBarContent>
+
+                <HeaderContent>
+                    <MudTh>ID</MudTh>
+                    <MudTh>Tamanho</MudTh>
+                    <MudTh>Cor</MudTh>
+                    <MudTh>Qtd. Disponivel</MudTh>
+                    <MudTh>Qtd. Minima</MudTh>
+                    <MudTh>Ações</MudTh>
+                </HeaderContent>
+
+                <RowTemplate>
+                    <MudTd DataLabel="Id">@context.Id</MudTd>
+                    <MudTd DataLabel="Tamanho">@context.Tamanho</MudTd>
+                    <MudTd DataLabel="Cor">@context.Cor</MudTd>
+                    <MudTd DataLabel="QtdDisponivel">@context.QtdDisponivel</MudTd>
+                    <MudTd DataLabel="QtdMinima">@context.QtdMinima</MudTd>
+                    <MudTd DataLabel="Ações">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => UpdateAsync(context.Id))"
+                                       Class="mr-2" />
+
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => DeleteAsync(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+
+                <PagerContent>
+                    <MudTablePager HorizontalAlignment="HorizontalAlignment.Center"
+                    RowsPerPageString="5" />
+                </PagerContent>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<style>
+    .estoque-baixo {
+        background-color: #ffebee; /* Vermelho bem clarinho */
+        border-left: 4px solid #f44336; /* Borda lateral vermelha */
+    }
+
+        .estoque-baixo:hover {
+            background-color: #ffcdd2; /* Vermelho um pouco mais forte ao passar o mouse */
+        }
+</style>
+
+@code {
+
+    // Corrigindo as declarações
+    List<Embalagem> embalagens = new List<Embalagem>(); // Lista para armazenar os dados
+
+    protected override async Task OnInitializedAsync()
+    {
+        embalagens = await _context.Embalagens.ToListAsync();
+        StateHasChanged(); // Força atualização da UI
+    }
+
+    //INSERIR NOVA EMBALAGEM
+    private async Task CreateAsync()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Embalagem", new Embalagem());
+
+        var dialog = _dialogService.Show<GerenciaEmbalagemDialog>("Incluir", parameters); 
+        var result = await dialog.Result;
+
+        if (!result.Canceled) 
+        {
+            Embalagem? novaEmbalagem = result.Data as Embalagem;
+            _context.Embalagens.Add(novaEmbalagem!);
+            await _context.SaveChangesAsync();
+            embalagens.Insert(0, novaEmbalagem!);
+            StateHasChanged();
+
+        }
+    }
+
+    //ALTERAR EMBALAGEM
+    private async Task UpdateAsync(int id)
+    {
+        var parameters = new DialogParameters();
+        var embalagemATT = embalagens.FirstOrDefault(_ => _.Id == id);
+        parameters.Add("Embalagem", embalagemATT);
+
+        var dialog = _dialogService.Show<GerenciaEmbalagemDialog>("Atualizar", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var novaEmbalagem = result.Data as Embalagem;
+            _context.Embalagens.Update(novaEmbalagem!);
+            await _context.SaveChangesAsync();
+
+            embalagens.Remove(embalagemATT!);
+            embalagens.Insert(0, novaEmbalagem!);
+            StateHasChanged();
+        }
+    }
+
+    //EXCLUIR EMBALAGEM
+    private async Task DeleteAsync(int id)
+    {
+        bool? result = await _dialogService.ShowMessageBox(
+            "Excluir",
+            "Deseja realmente excluir?",
+            yesText: "Sim",
+            cancelText: "Não");
+
+        if(result ?? false)
+        {
+			var embalagemDelete = await _context.Embalagens.FindAsync(id);
+			_context.Embalagens.Remove(embalagemDelete!);
+			await _context.SaveChangesAsync();
+            embalagens.Remove(embalagemDelete!);
+			StateHasChanged();
+        }
+    }
+
+
+    private bool FilterFunc1(Embalagem embalagem) => FilterFunc(embalagem, searchString1);
+
+    private bool FilterFunc(Embalagem embalagem, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (embalagem.Cor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{embalagem.Tamanho} {embalagem.Id} {embalagem.Tamanho}".Contains(searchString))
+            return true;
+        return false;
+    }
+
+    private Color GetStatusColor(Embalagem item)
+    {
+        var saldo = item.QtdDisponivel - item.QtdMinima;
+        return saldo < 100 ? Color.Error : Color.Default;
+    }
+
+    private string HighlightLowStock(Embalagem item)
+    {
+        // Verifica se precisa comprar mais (disponível - mínimo < 100)
+        return (item.QtdDisponivel - item.QtdMinima) < 100 ? "estoque-baixo" : "";
+    }
+
+    private bool dense = true;
+    private bool hover = true;
+    private bool striped = true;
+    private bool bordered = true;
+    private string searchString1 = "";
+    private Embalagem selectedItem1 = null;
+    private HashSet<Embalagem> selectedItems = new HashSet<Embalagem>();
+    private IEnumerable<Embalagem> Embalagem = new List<Embalagem>();
+}

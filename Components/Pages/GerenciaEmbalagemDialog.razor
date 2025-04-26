@@ -1,0 +1,92 @@
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@using FabricaDeChocolate.Data
+
+<MudDialog @rendermode="RenderMode.InteractiveServer">
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string"
+                              Label="Tamanho"
+                              @bind-Value="embalagem.Tamanho"
+                              Required="true"
+                              RequiredError="Tamanho é obrigatório"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string"
+                              Label="Cor"
+                              @bind-Value="embalagem.Cor"
+                              Required="true"
+                              RequiredError="Cor é obrigatória"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField T="int"
+                              Label="Quantidade Disponível"
+                              @bind-Value="embalagem.QtdDisponivel"
+                              InputType="InputType.Number"
+                              Min="0"
+                              Required="true"
+                              RequiredError="Quantidade é obrigatória"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField T="int"
+                              Label="Quantidade Mínima"
+                              @bind-Value="embalagem.QtdMinima"
+                              InputType="InputType.Number"
+                              Min="0"
+                              Required="true"
+                              RequiredError="Quantidade mínima é obrigatória"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Error"
+                   OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="Save"
+                   Disabled="@(!IsValid())">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Embalagem embalagem { get; set; } = new Embalagem();
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private void Save()
+    {
+        if (IsValid())
+        {
+            MudDialog?.Close(DialogResult.Ok(embalagem));
+        }
+    }
+
+    private bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(embalagem.Tamanho) &&
+               !string.IsNullOrWhiteSpace(embalagem.Cor) &&
+               embalagem.QtdDisponivel >= 0 &&
+               embalagem.QtdMinima >= 0;
+    }
+}
