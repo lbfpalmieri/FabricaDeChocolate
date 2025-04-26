@@ -12,14 +12,15 @@
                Color="Color.Inherit"
                OnClick="ToggleTheme" />
 
-<MudContainer Class="d-flex justify-center mb-2">
-    <MudFab 
-    Color="Color.Primary"
-    StartIcon="@Icons.Material.Filled.Add"
-    Site="Size.Large"
-    Label="Incluir Embalagem"
-    Class="ma-2" @onclick="(e => CreateAsync())"/>
-</MudContainer>
+<MudButton  Variant="Variant.Filled" 
+            Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Add"
+           @onclick="(e => CreateAsync())">Add. Embalagem </MudButton>
+
+<MudButton Variant="Variant.Filled"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.Add"
+           @onclick="DashboardTrufas"> Add. Trufa </MudButton>
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" lg="10" xl="8">
@@ -96,6 +97,12 @@
 </style>
 
 @code {
+
+    @inject NavigationManager Navigation
+    private void DashboardTrufas()
+    {
+        Navigation.NavigateTo("/DashboardTrufas");
+    }
 
     // Corrigindo as declarações
     List<Embalagem> embalagens = new List<Embalagem>(); // Lista para armazenar os dados

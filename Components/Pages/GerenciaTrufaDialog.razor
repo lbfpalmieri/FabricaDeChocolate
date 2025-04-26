@@ -1,0 +1,67 @@
+﻿@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@using FabricaDeChocolate.Data
+
+<MudDialog @rendermode="RenderMode.InteractiveServer">
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string"
+                              Label="Tamanho"
+                              @bind-Value="trufa.Descricao"
+                              Required="true"
+                              RequiredError="Tamanho é obrigatório"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField T="decimal"
+                              Label="Cor"
+                              @bind-Value="trufa.Preco"
+                              Required="true"
+                              RequiredError="Cor é obrigatória"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField T="int"
+                              Label="Cor"
+                              @bind-Value="trufa.Quantidade"
+                              Required="true"
+                              RequiredError="Cor é obrigatória"
+                              Variant="Variant.Outlined"
+                              Class="mb-3" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Error"
+                   OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="Save">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Trufa trufa { get; set; } = new Trufa();
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private void Save()
+    {
+
+        MudDialog?.Close(DialogResult.Ok(trufa));
+    }
+}

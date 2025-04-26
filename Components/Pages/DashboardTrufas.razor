@@ -1,0 +1,30 @@
+﻿@page "/DashboardTrufas"
+@rendermode InteractiveServer
+
+<h3>DashboardTrufas</h3>
+
+<MudContainer Class="d-flex justify-left mb-2">
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.KeyboardReturn"
+            Site="Size.Large"
+            Label="Voltar página inicial"
+            Class="ma-2" @onclick="Voltar" />
+</MudContainer>
+
+@code {
+    //INSERIR NOVA trufa
+    private async Task CreateTrufaAsync()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Trufa", new Trufa());
+
+        var dialog = _dialogService.Show<GerenciaTrufaDialog>("Incluir", parameters);
+        var result = await dialog.Result;
+    }
+
+    @inject NavigationManager Navigation
+    private void Voltar()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

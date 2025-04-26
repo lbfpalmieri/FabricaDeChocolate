@@ -6,6 +6,8 @@
         public string Descricao { get; set; } = string.Empty;
         public decimal Preco { get; set; }
 
+        public int Quantidade { get; set; }
+
         // Chave estrangeira para Embalagem
         public int EmbalagemId { get; set; }
 
