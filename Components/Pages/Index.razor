@@ -5,6 +5,13 @@
 <MudPopoverProvider />
 
 <MudDialogProvider />
+
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" />
+
+<MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+               Color="Color.Inherit"
+               OnClick="ToggleTheme" />
+
 <MudContainer Class="d-flex justify-center mb-2">
     <MudFab 
     Color="Color.Primary"
@@ -194,4 +201,11 @@
     private Embalagem selectedItem1 = null;
     private HashSet<Embalagem> selectedItems = new HashSet<Embalagem>();
     private IEnumerable<Embalagem> Embalagem = new List<Embalagem>();
+
+    private bool _isDarkMode = false;
+
+    private void ToggleTheme()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
 }

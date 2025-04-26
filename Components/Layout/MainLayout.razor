@@ -1,23 +1,20 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor
 
 <PageTitle>Fábrica de Chocolate</PageTitle>
 
-<MudThemeProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
-
 <MudLayout>
-	<MudAppBar>
-		<MudIconButton
-			Icon="@Icons.Material.Filled.Factory"  
-			Color="Color.Success" />
-			<MudText Typo="Typo.h4">Fábrica de Chocolate</MudText>
-	</MudAppBar>
+    <MudThemeProvider /> <!-- Alteração importante aqui -->
+    <MudDialogProvider />
+    <MudSnackbarProvider />
 
-	<MudMainContent>
-		@Body
-	</MudMainContent>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Factory"
+                       Color="Color.Success" />
+        <MudText Typo="Typo.h4">Fábrica de Chocolate</MudText>
+    </MudAppBar>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
 </MudLayout>
-
-
-
