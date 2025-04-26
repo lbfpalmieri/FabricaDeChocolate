@@ -7,43 +7,61 @@
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudTextField T="string"
-                              Label="Tamanho"
-                              @bind-Value="trufa.Descricao"
-                              Required="true"
-                              RequiredError="Tamanho é obrigatório"
-                              Variant="Variant.Outlined"
-                              Class="mb-3" />
+                Label="Descrição da Trufa"
+                @bind-Value="trufa.Descricao"
+                Required="true"
+                RequiredError="Descrição é obrigatória"
+                Variant="Variant.Outlined"
+                Class="mb-3" />
             </MudItem>
 
             <MudItem xs="12" sm="6">
                 <MudTextField T="decimal"
-                              Label="Cor"
-                              @bind-Value="trufa.Preco"
-                              Required="true"
-                              RequiredError="Cor é obrigatória"
-                              Variant="Variant.Outlined"
-                              Class="mb-3" />
+                Label="Preço"
+                @bind-Value="trufa.Preco"
+                InputType="InputType.Number"
+                Step="0.01"
+                Required="true"
+                RequiredError="Preço é obrigatório"
+                Variant="Variant.Outlined"
+                Class="mb-3" />
             </MudItem>
 
             <MudItem xs="12" sm="6">
                 <MudTextField T="int"
-                              Label="Cor"
-                              @bind-Value="trufa.Quantidade"
-                              Required="true"
-                              RequiredError="Cor é obrigatória"
-                              Variant="Variant.Outlined"
-                              Class="mb-3" />
+                Label="Quantidade"
+                @bind-Value="trufa.Quantidade"
+                InputType="InputType.Number"
+                Required="true"
+                RequiredError="Quantidade é obrigatória"
+                Variant="Variant.Outlined"
+                Class="mb-3" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int"
+                Label="Embalagem"
+                @bind-Value="trufa.EmbalagemId"
+                Variant="Variant.Outlined"
+                Required="true"
+                RequiredError="Selecione uma embalagem"
+                Class="mb-3">
+                    @foreach (var emb in embalagens)
+                    {
+                        <MudSelectItem Value="@emb.Id">@emb.Id - @emb.Cor - @emb.Tamanho</MudSelectItem>
+                    }
+                </MudSelect>
             </MudItem>
         </MudGrid>
     </DialogContent>
 
     <DialogActions>
         <MudButton Variant="Variant.Text"
-                   Color="Color.Error"
-                   OnClick="Cancel">Cancelar</MudButton>
+        Color="Color.Error"
+        OnClick="Cancel">Cancelar</MudButton>
         <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   OnClick="Save">Salvar</MudButton>
+        Color="Color.Primary"
+        OnClick="Save">Salvar</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -52,16 +70,25 @@
     IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public Trufa trufa { get; set; } = new Trufa();
+    public Trufa trufa { get; set; } = new(); // Note o "t" minúsculo
 
-    private void Cancel()
+    private List<Embalagem> embalagens = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        MudDialog?.Cancel();
+        using var context = _context;
+        embalagens = await context.Embalagens.ToListAsync();
+        StateHasChanged();
     }
 
     private void Save()
     {
+        MudDialog.Close(DialogResult.Ok(trufa));
+        StateHasChanged();
+    }
 
-        MudDialog?.Close(DialogResult.Ok(trufa));
+    private void Cancel()
+    {
+        MudDialog.Cancel();
     }
 }

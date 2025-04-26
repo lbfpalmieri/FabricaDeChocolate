@@ -1,30 +1,126 @@
 ﻿@page "/DashboardTrufas"
 @rendermode InteractiveServer
 
-<h3>DashboardTrufas</h3>
+@inject IServiceProvider ServiceProvider
+@inject IDialogService _dialogService
 
-<MudContainer Class="d-flex justify-left mb-2">
-    <MudFab Color="Color.Primary"
-            StartIcon="@Icons.Material.Filled.KeyboardReturn"
-            Site="Size.Large"
-            Label="Voltar página inicial"
-            Class="ma-2" @onclick="Voltar" />
-</MudContainer>
+
+<MudDialogProvider />
+<MudPopoverProvider />
+
+<MudText Typo="Typo.h4" Class="mb-4">Gerenciamento de Trufas</MudText>
+
+<MudButton Variant="Variant.Filled"
+            Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Add"
+            Class="mb-4"
+            @onclick="CreateTrufaAsync">Add. Trufa</MudButton>
+
+<MudTable Items="@trufa" 
+          Dense="@dense" 
+          Hover="@hover" 
+          Bordered="@bordered" 
+          Striped="@striped" 
+          Filter="new Func<Trufa,bool>(FilterFunc1)" 
+          @bind-SelectedItem="selectedItem1">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Periodic Elements</MudText>
+        <MudSpacer />
+        <MudTextField Immediate="true" @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Sabor</MudTh>
+        <MudTh>Embalagem</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Descricao">@context.Descricao</MudTd>
+        <MudTd DataLabel="EmbalagemId">@context.EmbalagemId</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+<div class="d-flex flex-wrap mt-4">
+    <MudSwitch @bind-Value="hover" Color="Color.Primary">Hover</MudSwitch>
+    <MudSwitch @bind-Value="dense" Color="Color.Secondary">Dense</MudSwitch>
+    <MudSwitch @bind-Value="striped" Color="Color.Tertiary">Striped</MudSwitch>
+    <MudSwitch @bind-Value="bordered" Color="Color.Warning">Bordered</MudSwitch>
+    <MudSpacer />
+    <div style="min-width:200px;">
+        <MudText Class="align-self-center d-inline">Trufa Selecionada: @selectedItem1?.Descricao</MudText>
+    </div>
+</div>
+
 
 @code {
-    //INSERIR NOVA trufa
+    private List<Trufa> trufa = new List<Trufa>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateHasChanged();
+        using var scope = ServiceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        trufa = await dbContext.Trufas.Include(t => t.Embalagem).ToListAsync() ?? new List<Trufa>();
+    }
+
     private async Task CreateTrufaAsync()
     {
         var parameters = new DialogParameters();
-        parameters.Add("Trufa", new Trufa());
+        parameters.Add("trufa", new Trufa());
 
-        var dialog = _dialogService.Show<GerenciaTrufaDialog>("Incluir", parameters);
+        var dialog = _dialogService.Show<GerenciaTrufaDialog>("Incluir Trufa", parameters);
         var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var novaTrufa = result.Data as Trufa;
+            if (novaTrufa != null)
+            {
+                using var scope = ServiceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                novaTrufa.Embalagem = null!; // evita inserção errada
+
+                dbContext.Attach(new Embalagem { Id = novaTrufa.EmbalagemId });
+
+                dbContext.Trufas.Add(novaTrufa);
+                await dbContext.SaveChangesAsync();
+
+                // Agora recarrega a trufa inteira com embalagem do banco
+                var trufaComEmbalagem = await dbContext.Trufas
+                    .Include(t => t.Embalagem)
+                    .FirstOrDefaultAsync(t => t.Id == novaTrufa.Id);
+
+                if (trufaComEmbalagem != null)
+                {
+                    trufa.Insert(0, trufaComEmbalagem);
+                    StateHasChanged();
+                }
+            }
+        }
     }
 
-    @inject NavigationManager Navigation
-    private void Voltar()
+    private bool dense = true;
+    private bool hover = true;
+    private bool striped = true;
+    private bool bordered = true;
+    private string searchString1 = "";
+    private Trufa selectedItem1 = null;
+    private HashSet<Trufa> selectedItems = new HashSet<Trufa>();
+    private IEnumerable<Trufa> Trufa = new List<Trufa>();
+
+    private bool FilterFunc1(Trufa element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Trufa element, string searchString)
     {
-        Navigation.NavigateTo("/");
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Descricao.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
     }
 }

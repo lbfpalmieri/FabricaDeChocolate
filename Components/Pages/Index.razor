@@ -1,6 +1,7 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @using FabricaDeChocolate.Data
+@inject NavigationManager Navigation
 
 <MudPopoverProvider />
 
@@ -15,12 +16,11 @@
 <MudButton  Variant="Variant.Filled" 
             Color="Color.Primary"
             StartIcon="@Icons.Material.Filled.Add"
-           @onclick="(e => CreateAsync())">Add. Embalagem </MudButton>
+            @onclick="(e => CreateAsync())">Add. Embalagem </MudButton>
 
 <MudButton Variant="Variant.Filled"
            Color="Color.Primary"
-           StartIcon="@Icons.Material.Filled.Add"
-           @onclick="DashboardTrufas"> Add. Trufa </MudButton>
+           @onclick="DashboardTrufas"> DashBoard Trufas </MudButton>
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" lg="10" xl="8">
@@ -98,7 +98,6 @@
 
 @code {
 
-    @inject NavigationManager Navigation
     private void DashboardTrufas()
     {
         Navigation.NavigateTo("/DashboardTrufas");
